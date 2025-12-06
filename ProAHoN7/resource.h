@@ -1,0 +1,121 @@
+//{{NO_DEPENDENCIES}}
+// Microsoft Visual C++ generated include file.
+// Used by LisACa.rc
+//
+#define IDCANCEL2                       3
+#define IDC_GVPOBL                      3
+#define IDD_ABOUTBOX                    100
+#define IDD_LISACA_FORM                 101
+#define IDR_MAINFRAME                   128
+#define IDR_LISACATYPE                  129
+#define IDB_MENPRE                      130
+#define IDD_DLGLISACA                   133
+#define IDD_DLGLISACF                   134
+#define IDD_DLGCONAUL                   135
+#define IDD_DLGPOBINI                   136
+#define IDD_DLGPROADI                   137
+#define IDC_NIVGRA                      1000
+#define IDC_LISDOC                      1000
+#define IDC_LISALU                      1001
+#define IDC_LISPAC                      1001
+#define IDC_TEXUNO                      1002
+#define IDC_TOTNGS                      1002
+#define IDC_TOTCDO                      1002
+#define IDC_LISSP3                      1002
+#define IDC_TEXDOS                      1003
+#define IDC_LISCDO                      1003
+#define IDC_LISSP4                      1003
+#define IDC_LISAUL                      1004
+#define IDC_EDIUNO                      1004
+#define IDC_LISSP1                      1004
+#define IDC_TEXTRE                      1005
+#define IDC_LISSP2                      1005
+#define IDC_LISHOR                      1006
+#define IDC_EDIUNO2                     1006
+#define IDC_TOTPEN                      1006
+#define IDC_TIPNOT                      1007
+#define IDC_TEXCUA                      1007
+#define IDC_NUMPOB                      1007
+#define IDC_TIPEVA                      1008
+#define IDC_TEXCIN                      1008
+#define IDC_SECCIO                      1009
+#define IDC_EDIUNO3                     1009
+#define IDC_TEXSEI                      1009
+#define IDC_COMEN1                      1010
+#define IDC_LISCHO                      1010
+#define IDC_TEXSIE                      1010
+#define IDC_EDIDOS                      1011
+#define IDC_EDICIN                      1012
+#define IDC_EDICUA                      1013
+#define IDC_EDITRE                      1014
+#define IDC_EDIDOS2                     1015
+#define IDC_TOTALU2                     1016
+#define IDC_EDITRE2                     1016
+#define IDC_EDICUA2                     1017
+#define IDC_EDICIN2                     1018
+#define IDC_LISCIC                      1019
+#define IDC_EDIDOS3                     1019
+#define IDC_EDISEI                      1019
+#define IDC_LISAULAS                    1020
+#define IDC_EDISES                      1020
+#define IDC_EDITRE3                     1021
+#define IDC_EDISES2                     1021
+#define IDC_EDICUA3                     1022
+#define IDC_EDISIE                      1022
+#define IDC_TEXSES                      1022
+#define IDC_EDICIN3                     1023
+#define IDC_LISPIN                      1023
+#define IDC_TEXSES2                     1023
+#define IDC_TEXOCH                      1024
+#define IDC_LISPENCIC                   1024
+#define IDC_LISCH2                      1024
+#define IDC_EDIOCH                      1025
+#define IDC_LISPENAUL                   1025
+#define IDC_TEXSES3                     1025
+#define IDC_LISPENDOC                   1026
+#define IDC_TEXSES4                     1026
+#define IDC_TEXNUE                      1027
+#define IDC_CAMASI                      1027
+#define IDC_EDINUE                      1028
+#define IDC_CALPEN                      1028
+#define IDC_TEXDIE                      1029
+#define IDC_LISSUBPOB                   1029
+#define IDC_EDIDIE                      1030
+#define IDC_GNPOBL                      1030
+#define IDC_ALTASI                      1031
+#define IDC_TEXONC                      1035
+#define IDC_EDIONC                      1036
+#define IDC_TEXDOC                      1037
+#define IDC_EDIDOC                      1038
+#define IDC_TEXTRC                      1039
+#define IDC_EDITRC                      1040
+#define IDC_TEXCAT                      1041
+#define IDC_EDICAT                      1042
+#define IDC_TEXQUI                      1043
+#define IDC_EDIQUI                      1044
+#define IDC_TEXDIS                      1045
+#define IDC_EDIDIS                      1046
+#define IDC_TEXDIC                      1047
+#define IDC_EDIDIC                      1048
+#define ID_PRO_CNFASI                   32771
+#define ID_PRO_GENARC                   32772
+#define ID_PRO_CONCIL                   32772
+#define ID_PRO_CPALUM                   32773
+#define ID_PRO_CPANUA                   32774
+#define ID_PRO_ASIHOR                   32775
+#define ID_PRO_CONAUL                   32776
+#define ID_BUTTON32777                  32777
+#define ID_PRO_CONHOR                   32778
+#define ID_PRO_CONPIN                   32779
+
+// Next default values for new objects
+// 
+#ifdef APSTUDIO_INVOKED
+#ifndef APSTUDIO_READONLY_SYMBOLS
+#define _APS_3D_CONTROLS                     1
+#define _APS_NEXT_RESOURCE_VALUE        131
+#define _APS_NEXT_COMMAND_VALUE         32780
+#define _APS_NEXT_CONTROL_VALUE         1029
+#define _APS_NEXT_SYMED_VALUE           101
+#endif
+#endif

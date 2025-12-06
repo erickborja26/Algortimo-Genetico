@@ -1,0 +1,132 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{cf4d2493-c1eb-4bdb-9365-71e23d7ec57f}</UniqueIdentifier>
+      <Extensions>cpp;c;cxx;rc;def;r;odl;idl;hpj;bat</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{4a95ecba-c573-475e-8a4b-871449c255b6}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{393cb87e-6cb3-4c3a-be3f-b29e5f7d3221}</UniqueIdentifier>
+      <Extensions>ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe</Extensions>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="LisACa.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LisACaDoc.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LisACaView.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MainFrm.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="StdAfx.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="LisACa.rc">
+      <Filter>Source Files</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="EstAlu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EstAre.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EstAsi.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EstAul.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EstCal.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EstCDA.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EstCDo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EstCHo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EstCur.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EstDoc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EstHor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EstMat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EstPAd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EstTAu.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="EstTHo.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LisACa.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LisACaDoc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LisACaView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="MainFrm.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StdAfx.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="res\bitmap1.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\icon1.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\LisACa.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\LisACaDoc.ico">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\mainfram.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+    <Image Include="res\Toolbar.bmp">
+      <Filter>Resource Files</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="res\LisACa.rc2">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="ReadMe.txt" />
+  </ItemGroup>
+</Project>

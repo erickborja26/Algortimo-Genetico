@@ -1,0 +1,536 @@
+from __future__ import annotations
+
+import math
+import random
+from dataclasses import dataclass, field
+from typing import Dict, List, Tuple, Optional
+from pathlib import Path
+import re
+
+from . import SEstAul, SEstCDA, SEstCDo, SEstCHo, SEstCur, SEstDoc, SEstTAu, SEstTHo
+from .state import GlobalState
+
+
+def _trim(bs: bytes) -> str:
+    return bs.decode("latin1", errors="ignore").rstrip("\x00 ").strip()
+
+
+@dataclass
+class LisACaLogic:
+    state: GlobalState
+    # Datos cargados desde los .ct1
+    tipos_aula: List[SEstTAu] = field(default_factory=list)
+    aulas: List[SEstAul] = field(default_factory=list)
+    docentes: List[SEstDoc] = field(default_factory=list)
+    cursos: List[SEstCur] = field(default_factory=list)
+    cursos_hora: List[SEstCHo] = field(default_factory=list)
+    cursos_docente: List[SEstCDo] = field(default_factory=list)
+
+    # Arreglos de disponibilidad/ocupación (equivalentes a sArrHDA*)
+    hda_aulas: List[List[List[str]]] = field(default_factory=list)   # [aula][dia][hora] -> etiqueta o "D"
+    hda_aulas2: List[List[List[str]]] = field(default_factory=list)
+    hda_docentes: List[List[List[str]]] = field(default_factory=list)  # [doc][dia][hora] -> "D"/"A"
+    hda_ciclos: List[List[List[str]]] = field(default_factory=list)    # [ciclo][dia][hora] -> etiqueta o "D"
+
+    # Penalidades por curso-docente
+    pen_ciclo: List[int] = field(default_factory=list)
+    pen_aula: List[int] = field(default_factory=list)
+    pen_docente: List[int] = field(default_factory=list)
+
+    def __post_init__(self) -> None:
+        self._load_basics()
+        self._init_disponibilidad()
+
+    def _load_basics(self) -> None:
+        """Replica CarDatTAu, CarDesAul, CarDocent, CarCursos, CarDesCHo, CarDesCDo usando GlobalState."""
+        data = self.state.data
+        self.tipos_aula = list(data.get("TTAula.ct1", []))
+        self.aulas = list(data.get("TAulas.ct1", []))
+        self.docentes = list(data.get("TDocent.ct1", []))
+        self.cursos = list(data.get("TCursos.ct1", []))
+        # Atributos de horas por curso (TCHoras.ct1)
+        self.cursos_hora = list(data.get("TCHoras.ct1", []))
+        # Cursos-Docentes: usamos TProfes.ct1 (y anexamos TAsiPro.ct1 si existe)
+        self.cursos_docente = list(data.get("TProfes.ct1", []))
+        if "TAsiPro.ct1" in data:
+            self.cursos_docente.extend(data["TAsiPro.ct1"])
+
+    def _init_disponibilidad(self) -> None:
+        """Inicializa estructuras de disponibilidad en 'D' (Disponible), emulando las tablas 4D del C++."""
+        num_aulas = max(1, len(self.aulas))
+        num_doc = max(1, len(self.docentes))
+        # Aulas: [aula][dia(6)][hora(18)]
+        self.hda_aulas = [[["D" for _ in range(18)] for _ in range(6)] for _ in range(num_aulas)]
+        self.hda_aulas2 = [[["D" for _ in range(18)] for _ in range(6)] for _ in range(num_aulas)]
+        # Docentes
+        self.hda_docentes = [[["D" for _ in range(18)] for _ in range(6)] for _ in range(num_doc)]
+        # Ciclos (hasta 10)
+        self.hda_ciclos = [[["D" for _ in range(18)] for _ in range(6)] for _ in range(10)]
+        # Penalidades
+        total_cd = max(1, len(self.cursos_docente))
+        self.pen_ciclo = [0 for _ in range(total_cd)]
+        self.pen_aula = [0 for _ in range(total_cd)]
+        self.pen_docente = [0 for _ in range(total_cd)]
+
+    def etiqueta_cd(self, idx_cd: int) -> str:
+        """Devuelve etiqueta 'CUR DOC GRU' de 9 chars igual que el código C."""
+        cd = self.cursos_docente[idx_cd]
+        return f"{_trim(cd.m_szcodcur):<3}{_trim(cd.m_szcoddoc):<3}{_trim(cd.m_szcodgru):<3}"
+
+    def _ciclo_from_curso(self, codcur: str) -> int:
+        for cur in self.cursos:
+            if _trim(cur.m_szcodcur) == codcur:
+                cic = _trim(cur.m_szciccur)
+                if len(cic) >= 2 and cic[0].isdigit() and cic[1].isdigit():
+                    val = int(cic[:2]) - 1
+                    return val if 0 <= val < 10 else 0
+        return 0
+
+    def _idx_doc(self, coddoc: str) -> int:
+        for i, doc in enumerate(self.docentes):
+            if _trim(doc.m_szcoddoc) == coddoc:
+                return i
+        return -1
+
+    def _idx_aula(self, codaul: str) -> int:
+        for i, a in enumerate(self.aulas):
+            if _trim(a.m_szcodaul) == codaul:
+                return i
+        return -1
+
+    # --------------------------- Asignación y penalidades --------------------------- #
+
+    def asignar_slot(self, aula_idx: int, dia: int, hora: int, cd_idx: int, lista: int = 1) -> None:
+        """Marca la asignación de un curso-docente-grupo en aula/día/hora y sugiere ciclo/docente."""
+        tag = self.etiqueta_cd(cd_idx)
+        if lista == 1:
+            self.hda_aulas[aula_idx][dia][hora] = tag
+        else:
+            self.hda_aulas2[aula_idx][dia][hora] = tag
+        cd = self.cursos_docente[cd_idx]
+        coddoc = _trim(cd.m_szcoddoc)
+        doc_idx = self._idx_doc(coddoc)
+        if doc_idx >= 0:
+            self.hda_docentes[doc_idx][dia][hora] = "A"
+        ciclo = self._ciclo_from_curso(_trim(cd.m_szcodcur))
+        self.hda_ciclos[ciclo][dia][hora] = _trim(cd.m_szcodcur)
+
+    def calc_penalties(self) -> Dict[str, List[str]]:
+        """
+        Traduce la lógica central de OnCalpen:
+        - Cuenta cruces por ciclo/día/hora y por aula/día/hora.
+        - Calcula penalidades por ciclo, aula y docente para cada curso-docente.
+        Devuelve cadenas legibles (similares a los listbox del UI) para inspección/depuración.
+        """
+        # Reinicia contadores
+        self.pen_ciclo = [0 for _ in self.pen_ciclo]
+        self.pen_aula = [0 for _ in self.pen_aula]
+        self.pen_docente = [0 for _ in self.pen_docente]
+
+        # Conteo de ocupación por ciclo/día/hora
+        cic_occ = [[[0 for _ in range(18)] for _ in range(6)] for _ in range(10)]
+        for idx_cd, cd in enumerate(self.cursos_docente):
+            codcur = _trim(cd.m_szcodcur)
+            coddoc = _trim(cd.m_szcoddoc)
+            codgru = _trim(cd.m_szcodgru)
+            ciclo = self._ciclo_from_curso(codcur)
+            for aula_idx, aula in enumerate(self.aulas):
+                for dia in range(6):
+                    for hora in range(18):
+                        tag = self.hda_aulas[aula_idx][dia][hora]
+                        tag2 = self.hda_aulas2[aula_idx][dia][hora]
+                        if tag.startswith(codcur) and tag[3:6] == coddoc and tag[6:9] == codgru:
+                            cic_occ[ciclo][dia][hora] += 1
+                        if tag2.startswith(codcur) and tag2[3:6] == coddoc and tag2[6:9] == codgru:
+                            cic_occ[ciclo][dia][hora] += 1
+
+        # Penalidad por ciclo (más de una asignación en mismo ciclo/día/hora)
+        for ciclo in range(10):
+            for dia in range(6):
+                for hora in range(18):
+                    if cic_occ[ciclo][dia][hora] > 1:
+                        exceso = cic_occ[ciclo][dia][hora] - 1
+                        # penaliza a todos los CD que ocupan ese slot
+                        for idx_cd, cd in enumerate(self.cursos_docente):
+                            codcur = _trim(cd.m_szcodcur)
+                            coddoc = _trim(cd.m_szcoddoc)
+                            codgru = _trim(cd.m_szcodgru)
+                            cur_ciclo = self._ciclo_from_curso(codcur)
+                            if cur_ciclo != ciclo:
+                                continue
+                            for aula_idx in range(len(self.aulas)):
+                                for tag in (self.hda_aulas[aula_idx][dia][hora], self.hda_aulas2[aula_idx][dia][hora]):
+                                    if tag.startswith(codcur) and tag[3:6] == coddoc and tag[6:9] == codgru:
+                                        self.pen_ciclo[idx_cd] += exceso
+                                        break
+
+        # Penalidad por aula: más de un curso en mismo aula/día/hora
+        for aula_idx in range(len(self.aulas)):
+            for dia in range(6):
+                for hora in range(18):
+                    tags = []
+                    if self.hda_aulas[aula_idx][dia][hora] != "D":
+                        tags.append(self.hda_aulas[aula_idx][dia][hora])
+                    if self.hda_aulas2[aula_idx][dia][hora] != "D":
+                        tags.append(self.hda_aulas2[aula_idx][dia][hora])
+                    if len(tags) > 1:
+                        for tag in tags:
+                            for idx_cd, cd in enumerate(self.cursos_docente):
+                                if tag.startswith(_trim(cd.m_szcodcur)) and tag[3:6] == _trim(cd.m_szcoddoc):
+                                    self.pen_aula[idx_cd] += len(tags) - 1
+
+        # Penalidad por docente: más de un curso en mismo docente/día/hora
+        for doc_idx in range(len(self.docentes)):
+            for dia in range(6):
+                for hora in range(18):
+                    occ = 1 if self.hda_docentes[doc_idx][dia][hora] == "A" else 0
+                    if occ > 1:
+                        for idx_cd, cd in enumerate(self.cursos_docente):
+                            if self._idx_doc(_trim(cd.m_szcoddoc)) == doc_idx:
+                                self.pen_docente[idx_cd] += occ - 1
+
+        # Salidas legibles
+        lines_pen_cic = []
+        lines_pen_aul = []
+        lines_pen_doc = []
+        for idx_cd, cd in enumerate(self.cursos_docente):
+            cur = _trim(cd.m_szcodcur)
+            gru = _trim(cd.m_szcodgru)
+            doc = _trim(cd.m_szcoddoc)
+            lines_pen_cic.append(f"{cur} {gru} {doc} PEN_CIC={self.pen_ciclo[idx_cd]}")
+            lines_pen_aul.append(f"{cur} {gru} {doc} PEN_AUL={self.pen_aula[idx_cd]}")
+            lines_pen_doc.append(f"{cur} {gru} {doc} PEN_DOC={self.pen_docente[idx_cd]}")
+
+        return {
+            "pen_ciclo": lines_pen_cic,
+            "pen_aula": lines_pen_aul,
+            "pen_docente": lines_pen_doc,
+        }
+
+    # --------------------------- Población / genética simplificada --------------------------- #
+
+    def fitness(self, idx_cd: int) -> float:
+        """Función de aptitud equivalente a 1/(penalidad_total+1)."""
+        total_pen = self.pen_ciclo[idx_cd] + self.pen_aula[idx_cd] + self.pen_docente[idx_cd]
+        return 1.0 / (total_pen + 1.0)
+
+    def seleccion_ruleta(self, pesos: List[float]) -> int:
+        total = sum(pesos)
+        if total <= 0:
+            return 0
+        r = random.random() * total
+        acc = 0.0
+        for i, w in enumerate(pesos):
+            acc += w
+            if r <= acc:
+                return i
+        return len(pesos) - 1
+
+    def generar_poblacion(self) -> Dict[str, List[str]]:
+        """
+        Traducción simplificada de OnGnpobl:
+        - Usa penalidades actuales para construir probabilidades.
+        - Devuelve strings que representan selección de padres/hijos.
+        No ejecuta cruce/mutación completa; sirve como base para completar la portación.
+        """
+        resumen = []
+        fitness_vals = [self.fitness(i) for i in range(len(self.cursos_docente))]
+        for i, fit in enumerate(fitness_vals):
+            resumen.append(f"{self.etiqueta_cd(i)} FIT={fit:.4f} PEN={1/fit -1:.0f}")
+        # Selecciona dos padres por ruleta
+        if len(fitness_vals) >= 2:
+            p1 = self.seleccion_ruleta(fitness_vals)
+            p2 = p1
+            while p2 == p1:
+                p2 = self.seleccion_ruleta(fitness_vals)
+            resumen.append(f"Padre1={self.etiqueta_cd(p1)} Padre2={self.etiqueta_cd(p2)}")
+        return {"poblacion": resumen}
+
+    # --------------------------- GA: individuos, cruce, mutación --------------------------- #
+
+    def _current_individual(self) -> List[Tuple[int, int, int, int, int]]:
+        """
+        Extrae el individuo actual a partir de hda_aulas/hda_aulas2.
+        Retorna lista de genes: (cd_idx, aula_idx, dia, hora, lista_id).
+        """
+        genes = []
+        for aula_idx in range(len(self.aulas)):
+            for dia in range(6):
+                for hora in range(18):
+                    tag = self.hda_aulas[aula_idx][dia][hora]
+                    if tag != "D":
+                        cd_idx = self._tag_to_cd_idx(tag)
+                        if cd_idx is not None:
+                            genes.append((cd_idx, aula_idx, dia, hora, 1))
+                    tag2 = self.hda_aulas2[aula_idx][dia][hora]
+                    if tag2 != "D":
+                        cd_idx = self._tag_to_cd_idx(tag2)
+                        if cd_idx is not None:
+                            genes.append((cd_idx, aula_idx, dia, hora, 2))
+        return genes
+
+    def _tag_to_cd_idx(self, tag: str) -> Optional[int]:
+        for idx, cd in enumerate(self.cursos_docente):
+            if tag.startswith(_trim(cd.m_szcodcur)) and tag[3:6] == _trim(cd.m_szcoddoc) and tag[6:9] == _trim(cd.m_szcodgru):
+                return idx
+        return None
+
+    def _apply_individual(self, genes: List[Tuple[int, int, int, int, int]]) -> None:
+        """Aplica un individuo a las tablas hda*, limpiando primero."""
+        self._init_disponibilidad()
+        for cd_idx, aula_idx, dia, hora, lista_id in genes:
+            if aula_idx < 0 or aula_idx >= len(self.aulas):
+                continue
+            if dia < 0 or dia >= 6 or hora < 0 or hora >= 18:
+                continue
+            self.asignar_slot(aula_idx, dia, hora, cd_idx, lista=lista_id)
+
+    def _fitness_individual(self, genes: List[Tuple[int, int, int, int, int]]) -> float:
+        """Calcula fitness de un individuo construyendo tablas temporales y penalidades."""
+        # Guarda estado actual
+        orig_aulas = self.hda_aulas
+        orig_aulas2 = self.hda_aulas2
+        orig_doc = self.hda_docentes
+        orig_cic = self.hda_ciclos
+        orig_pen_c = self.pen_ciclo
+        orig_pen_a = self.pen_aula
+        orig_pen_d = self.pen_docente
+        try:
+            self._apply_individual(genes)
+            self.calc_penalties()
+            # Penalidad total = suma penalidades; fitness = 1/(1+pen)
+            total_pen = sum(self.pen_ciclo) + sum(self.pen_aula) + sum(self.pen_docente)
+            return 1.0 / (1.0 + total_pen)
+        finally:
+            # Restaura
+            self.hda_aulas = orig_aulas
+            self.hda_aulas2 = orig_aulas2
+            self.hda_docentes = orig_doc
+            self.hda_ciclos = orig_cic
+            self.pen_ciclo = orig_pen_c
+            self.pen_aula = orig_pen_a
+            self.pen_docente = orig_pen_d
+
+    def _crossover(self, p1: List[Tuple[int, int, int, int, int]], p2: List[Tuple[int, int, int, int, int]]) -> List[Tuple[int, int, int, int, int]]:
+        """Crossover uniforme: mezcla genes sin duplicar el mismo curso-docente."""
+        child = []
+        seen_cd = set()
+        for g1, g2 in zip(p1, p2):
+            pick = g1 if random.random() < 0.5 else g2
+            if pick[0] in seen_cd:
+                other = g2 if pick is g1 else g1
+                pick = other
+            if pick[0] in seen_cd:
+                continue
+            seen_cd.add(pick[0])
+            child.append(pick)
+        # Añade genes restantes de padres si falta alguno
+        for g in p1 + p2:
+            if g[0] not in seen_cd:
+                child.append(g)
+                seen_cd.add(g[0])
+        return child
+
+    def _mutate(self, genes: List[Tuple[int, int, int, int, int]], prob: float) -> List[Tuple[int, int, int, int, int]]:
+        mutated = []
+        for cd_idx, aula_idx, dia, hora, lista_id in genes:
+            if random.random() < prob:
+                aula_idx = random.randrange(len(self.aulas)) if self.aulas else aula_idx
+                dia = random.randrange(6)
+                hora = random.randrange(18)
+                lista_id = 1
+            mutated.append((cd_idx, aula_idx, dia, hora, lista_id))
+        return mutated
+
+    def _hours_for_course(self, codcur: str) -> int:
+        """Horas requeridas para un curso según TCHoras (m_sznumhor)."""
+        total = 0
+        for ch in self.cursos_hora:
+            if _trim(ch.m_szcodcur) == codcur:
+                try:
+                    total += int(_trim(ch.m_sznumhor) or "0")
+                except ValueError:
+                    total += 1
+        return max(total, 1)
+
+    def _aulas_for_type(self, ctaula: str) -> List[int]:
+        """Devuelve índices de aulas compatibles con tipo de aula (m_szctaasi)."""
+        res = []
+        for idx, a in enumerate(self.aulas):
+            if _trim(a.m_szctaasi) == ctaula or not ctaula.strip():
+                res.append(idx)
+        if not res:
+            res = list(range(len(self.aulas)))
+        return res
+
+    def _generate_random_individual(self) -> List[Tuple[int, int, int, int, int]]:
+        """
+        Construye un individuo aleatorio respetando número de horas por curso
+        y evitando choques de aula/docente durante la generación.
+        """
+        genes: List[Tuple[int, int, int, int, int]] = []
+        occ_aula = set()
+        occ_doc = set()
+        for idx_cd, cd in enumerate(self.cursos_docente):
+            codcur = _trim(cd.m_szcodcur)
+            coddoc = _trim(cd.m_szcoddoc)
+            doc_idx = self._idx_doc(coddoc)
+            horas = self._hours_for_course(codcur)
+            # aula preferida por tipo
+            ctaula = ""
+            for ch in self.cursos_hora:
+                if _trim(ch.m_szcodcur) == codcur:
+                    ctaula = _trim(ch.m_szctaula)
+                    break
+            aulas_posibles = self._aulas_for_type(ctaula)
+            for _ in range(horas):
+                for _attempt in range(50):
+                    aula_idx = random.choice(aulas_posibles) if aulas_posibles else 0
+                    dia = random.randrange(6)
+                    hora = random.randrange(18)
+                    if (aula_idx, dia, hora) in occ_aula:
+                        continue
+                    if doc_idx >= 0 and (doc_idx, dia, hora) in occ_doc:
+                        continue
+                    occ_aula.add((aula_idx, dia, hora))
+                    if doc_idx >= 0:
+                        occ_doc.add((doc_idx, dia, hora))
+                    genes.append((idx_cd, aula_idx, dia, hora, 1))
+                    break
+        return genes
+
+    def run_ga(self, generaciones: int = 5, pob_size: int = 10, mut_prob: float = 0.1) -> Dict[str, str]:
+        """
+        GA simplificado:
+        - Individuo: lista de asignaciones (cd_idx, aula, dia, hora, lista).
+        - Población inicial: padre base (ocupación actual) + clones mutados.
+        - Selección: ruleta por fitness.
+        - Crossover + mutación por generación.
+        - Al final aplica el mejor individuo y recalcula penalidades.
+        Devuelve resumen y aplica cambios sobre hda_*.
+        """
+        base = self._current_individual()
+        if not base:
+            base = self._generate_random_individual()
+        if not base:
+            return {"status": "sin_asignaciones"}
+        poblacion = [base]
+        # Inicializa población mutando o generando variantes aleatorias
+        for i in range(pob_size - 1):
+            if i % 2 == 0:
+                poblacion.append(self._mutate(base, prob=0.3))
+            else:
+                poblacion.append(self._generate_random_individual())
+
+        best = base
+        best_fit = self._fitness_individual(best)
+
+        for _ in range(generaciones):
+            fits = [self._fitness_individual(ind) for ind in poblacion]
+            # Guarda mejor
+            for ind, fit in zip(poblacion, fits):
+                if fit > best_fit:
+                    best_fit = fit
+                    best = ind
+            # Nueva población
+            nueva = []
+            for _ in range(pob_size // 2):
+                p1 = poblacion[self.seleccion_ruleta(fits)]
+                p2 = poblacion[self.seleccion_ruleta(fits)]
+                hijo = self._crossover(p1, p2)
+                hijo = self._mutate(hijo, mut_prob)
+                nueva.extend([p1, hijo])
+            poblacion = nueva[:pob_size]
+
+        # Aplica mejor individuo encontrado
+        self._apply_individual(best)
+        self.calc_penalties()
+        return {
+            "mejor_fitness": f"{best_fit:.4f}",
+            "total_penalidad": str(sum(self.pen_ciclo) + sum(self.pen_aula) + sum(self.pen_docente)),
+            "genes": str(len(best)),
+        }
+
+    # --------------------------- Carga desde solución textual --------------------------- #
+
+    def load_from_lsolhor(self, path: str | Path = "AsiHor/LSolHor.txt") -> None:
+        """
+        Parsea LSolHor.txt (salida del exe) y llena las tablas de ocupación.
+        Usa: ciclo, cod.curso, cod.docente, aula (se usa también como grupo por falta de campo explícito),
+        día y rango horario.
+        """
+        p = Path(path)
+        if not p.exists():
+            return
+        text = p.read_text(encoding="latin1", errors="ignore")
+        # Mapeo de días
+        dia_map = {
+            "Lunes": 0,
+            "Martes": 1,
+            "Mierco": 2,
+            "Jueves": 3,
+            "Vierne": 4,
+            "Sabado": 5,
+            "Sábado": 5,
+        }
+        # Tabla de tiempos (minutos) a slot
+        times: List[int] = []
+        for line in text.splitlines():
+            parts = line.split()
+            if len(parts) < 5:
+                continue
+            for t in parts[-2:]:
+                if re.match(r"\d{2}:\d{2}", t):
+                    hh, mm = map(int, t.split(":"))
+                    times.append(hh * 60 + mm)
+        uniq_times = sorted(set(times))
+        slots: List[Tuple[int, int]] = []
+        for i in range(len(uniq_times) - 1):
+            slots.append((uniq_times[i], uniq_times[i + 1]))
+
+        def slot_indices(start_min: int, end_min: int) -> List[int]:
+            idxs = []
+            for idx, (a, b) in enumerate(slots):
+                if a >= end_min or b <= start_min:
+                    continue
+                idxs.append(idx)
+            return idxs
+
+        for line in text.splitlines():
+            parts = line.split()
+            if len(parts) < 8:
+                continue
+            if not re.match(r"\d{2}:\d{2}", parts[-1]):
+                continue
+            hora_fin = parts[-1]
+            hora_ini = parts[-2]
+            dia_str = parts[-3]
+            aula_cod = parts[-4]
+            cod_doc = parts[3]
+            cod_cur = parts[1]
+            dia_idx = dia_map.get(dia_str, None)
+            if dia_idx is None:
+                continue
+            start_min = int(hora_ini[:2]) * 60 + int(hora_ini[3:5])
+            end_min = int(hora_fin[:2]) * 60 + int(hora_fin[3:5])
+            horas = slot_indices(start_min, end_min)
+            cd_idx = self._find_curso_docente(cod_cur, cod_doc, aula_cod)
+            aula_idx = self._idx_aula(aula_cod)
+            if cd_idx < 0 or aula_idx < 0:
+                continue
+            for h in horas:
+                if h < 18:
+                    self.asignar_slot(aula_idx, dia_idx, h, cd_idx, lista=1)
+
+    def _find_curso_docente(self, cod_cur: str, cod_doc: str, cod_gru: str) -> int:
+        """
+        Busca en cursos_docente por coincidencia de curso, docente y grupo.
+        Si no encuentra grupo, relaja a (curso, docente).
+        """
+        for idx, cd in enumerate(self.cursos_docente):
+            if _trim(cd.m_szcodcur) == cod_cur and _trim(cd.m_szcoddoc) == cod_doc and _trim(cd.m_szcodgru) == cod_gru:
+                return idx
+        for idx, cd in enumerate(self.cursos_docente):
+            if _trim(cd.m_szcodcur) == cod_cur and _trim(cd.m_szcoddoc) == cod_doc:
+                return idx
+        return -1

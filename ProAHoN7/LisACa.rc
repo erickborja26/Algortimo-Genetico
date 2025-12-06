@@ -1,0 +1,720 @@
+// Microsoft Visual C++ generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// English (U.S.) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
+#ifdef _WIN32
+LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Toolbar
+//
+
+IDR_MAINFRAME TOOLBAR  26, 21
+BEGIN
+    BUTTON      ID_FILE_PRINT_PREVIEW
+    BUTTON      ID_FILE_PRINT
+    BUTTON      ID_PRO_ASIHOR
+    BUTTON      ID_PRO_CPANUA
+    BUTTON      ID_PRO_CONCIL
+    BUTTON      ID_PRO_CONAUL
+    BUTTON      ID_PRO_CONHOR
+    BUTTON      ID_PRO_CONPIN
+    BUTTON      ID_APP_ABOUT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDR_MAINFRAME           BITMAP                  "res\\mainfram.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MAINFRAME MENU 
+BEGIN
+    POPUP "&Archivo"
+    BEGIN
+        MENUITEM "&Print...\tCtrl+P",           ID_FILE_PRINT
+        MENUITEM "Print Pre&view",              ID_FILE_PRINT_PREVIEW
+        MENUITEM "P&rint Setup...",             ID_FILE_PRINT_SETUP
+        MENUITEM SEPARATOR
+        MENUITEM "Recent File",                 ID_FILE_MRU_FILE1, GRAYED
+        MENUITEM SEPARATOR
+        MENUITEM "E&xit",                       ID_APP_EXIT
+    END
+    POPUP "&Ver"
+    BEGIN
+        MENUITEM "&Toolbar",                    ID_VIEW_TOOLBAR
+        MENUITEM "&Status Bar",                 ID_VIEW_STATUS_BAR
+    END
+    POPUP "&Help"
+    BEGIN
+        MENUITEM "&About ProAHo",               ID_APP_ABOUT
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    ID_PRO_CNFASI           "Cálculo Nota del Año de Asignaturas\nNota Final"
+    ID_PRO_CONCIL           "Realiza Consulta por Ciclo\nCons.Ciclo"
+    ID_PRO_CPALUM           "Calculo de Promedios en un Periodo\nCal.Pro.Per."
+    ID_PRO_CPANUA           "Procesos de Cálculio Adicionales\nProc.Adicional"
+    ID_PRO_ASIHOR           "Realiza Asignación de Horariso\nRealiza Asign."
+    ID_PRO_CONAUL           "Realiza Consulta por Aula\nCons.Aula"
+    ID_BUTTON32777          "Realiza Consulta de Horario\nCons.Horario"
+    ID_PRO_CONHOR           "Realiza Consulta de Horario\nCons.Horario"
+    ID_PRO_CONPIN           "Realiza Consulta Población Inicial\nCons.Poblac."
+END
+
+#endif    // English (U.S.) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Spanish (Mexican) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ESM)
+#ifdef _WIN32
+LANGUAGE LANG_SPANISH, SUBLANG_SPANISH_MEXICAN
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_DLGLISACA DIALOG  0, 0, 483, 278
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Horarios"
+FONT 8, "MS Sans Serif"
+BEGIN
+    PUSHBUTTON      "Salir",IDCANCEL,446,6,30,14
+    LTEXT           "Curso",IDC_STATIC,9,26,41,10
+    LISTBOX         IDC_LISHOR,8,39,443,199,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Docente",IDC_STATIC,151,26,61,10
+    LTEXT           "Aula",IDC_STATIC,259,26,19,10
+    LTEXT           "Dia",IDC_STATIC,283,26,21,10
+END
+
+IDD_DLGLISACF DIALOG  0, 0, 503, 324
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Consulta de horario por ciclo"
+FONT 8, "MS Sans Serif"
+BEGIN
+    PUSHBUTTON      "Salir",IDCANCEL,466,6,30,14
+    LTEXT           "Ciclo",IDC_STATIC,8,10,34,12
+    LTEXT           "Hora",IDC_STATIC,8,34,17,12
+    LTEXT           "Martes",IDC_STATIC,123,34,29,12
+    LTEXT           "Miecoles",IDC_STATIC,195,34,29,12
+    LTEXT           "Lunes",IDC_STATIC,53,34,29,12
+    LTEXT           "Viernes",IDC_STATIC,338,34,29,12
+    LTEXT           "Sábado",IDC_STATIC,411,34,29,12
+    LTEXT           "Jueves",IDC_STATIC,268,34,29,12
+    LTEXT           "08:00-08:50",IDC_TEXUNO,8,49,40,12
+    LTEXT           "08:50-09:40",IDC_TEXDOS,8,79,40,12
+    LTEXT           "09:40-10:30",IDC_TEXTRE,8,109,40,12
+    LTEXT           "10:30-11:20",IDC_TEXCUA,8,139,40,12
+    LTEXT           "11:20-12:10",IDC_TEXCIN,8,169,40,12
+    EDITTEXT        IDC_EDIUNO,49,49,423,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIDOS,49,79,423,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDICIN,49,169,423,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDICUA,49,139,423,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDITRE,49,109,423,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIUNO2,49,64,423,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIDOS2,49,94,423,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDITRE2,49,124,423,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDICUA2,49,154,423,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDICIN2,49,184,423,14,ES_AUTOHSCROLL
+    COMBOBOX        IDC_LISCIC,47,10,36,58,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "12:10-13:00",IDC_TEXSES,8,199,40,12
+    EDITTEXT        IDC_EDISES,49,199,423,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDISES2,49,214,423,14,ES_AUTOHSCROLL
+    LISTBOX         IDC_LISCHO,49,243,218,55,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LISTBOX         IDC_LISCH2,278,243,218,55,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "MATRIZ UNO de Aulas Dias y Horas",IDC_TEXSES3,50,230,124,12
+    LTEXT           "MATRIZ DOS de Aulas Dias y Horas",IDC_TEXSES4,275,231,134,12
+END
+
+IDD_DLGCONAUL DIALOG  0, 0, 492, 305
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Consulta de horario por aula"
+FONT 8, "MS Sans Serif"
+BEGIN
+    PUSHBUTTON      "Salir",IDCANCEL,455,6,30,14
+    LTEXT           "Aula",IDC_STATIC,8,10,34,12
+    LTEXT           "Hora",IDC_STATIC,8,34,17,12
+    LTEXT           "Martes",IDC_STATIC,127,34,29,12
+    LTEXT           "Miecoles",IDC_STATIC,201,34,29,12
+    LTEXT           "Lunes",IDC_STATIC,57,34,29,12
+    LTEXT           "Viernes",IDC_STATIC,343,34,29,12
+    LTEXT           "Sabado",IDC_STATIC,413,34,29,12
+    LTEXT           "Jueves",IDC_STATIC,274,34,29,12
+    LTEXT           "08:00-08:50",IDC_TEXUNO,10,49,40,12
+    LTEXT           "08:50-09:40",IDC_TEXDOS,10,63,40,12
+    LTEXT           "09:40-10:30",IDC_TEXTRE,10,77,40,12
+    LTEXT           "10:30-11:20",IDC_TEXCUA,10,91,40,12
+    LTEXT           "11:20-12:10",IDC_TEXCIN,10,105,40,12
+    EDITTEXT        IDC_EDIUNO,54,49,423,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDIDOS,54,63,423,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDICIN,54,105,423,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDICUA,54,91,423,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_EDITRE,54,77,423,14,ES_AUTOHSCROLL
+    COMBOBOX        IDC_LISAULAS,47,10,47,58,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "12:10-13:00",IDC_TEXSEI,10,119,40,12
+    EDITTEXT        IDC_EDISEI,54,119,423,14,ES_AUTOHSCROLL
+    LTEXT           "13:00-13:50",IDC_TEXSIE,10,133,40,12
+    EDITTEXT        IDC_EDISIE,54,133,423,14,ES_AUTOHSCROLL
+    LTEXT           "13:50-14:40",IDC_TEXOCH,10,147,40,12
+    EDITTEXT        IDC_EDIOCH,54,147,423,14,ES_AUTOHSCROLL
+    LTEXT           "14:40-15:30",IDC_TEXNUE,9,161,40,12
+    EDITTEXT        IDC_EDINUE,54,161,423,14,ES_AUTOHSCROLL
+    LTEXT           "15:30-16:20",IDC_TEXDIE,9,175,40,12
+    EDITTEXT        IDC_EDIDIE,54,175,423,14,ES_AUTOHSCROLL
+    LTEXT           "16:20-17:10",IDC_TEXONC,9,189,40,12
+    EDITTEXT        IDC_EDIONC,54,189,423,14,ES_AUTOHSCROLL
+    LTEXT           "17:10-18:00",IDC_TEXDOC,9,203,40,12
+    EDITTEXT        IDC_EDIDOC,54,203,423,14,ES_AUTOHSCROLL
+    LTEXT           "18:00-18:50",IDC_TEXTRC,10,217,40,12
+    EDITTEXT        IDC_EDITRC,54,217,423,14,ES_AUTOHSCROLL
+    LTEXT           "18:50-19:40",IDC_TEXCAT,10,231,40,12
+    EDITTEXT        IDC_EDICAT,54,231,423,14,ES_AUTOHSCROLL
+    LTEXT           "19:40-20:30",IDC_TEXQUI,10,245,40,12
+    EDITTEXT        IDC_EDIQUI,54,245,423,14,ES_AUTOHSCROLL
+    LTEXT           "20:30-21:20",IDC_TEXDIS,10,259,40,12
+    EDITTEXT        IDC_EDIDIS,54,259,423,14,ES_AUTOHSCROLL
+    LTEXT           "21:20-22:10",IDC_TEXDIC,10,273,40,12
+    EDITTEXT        IDC_EDIDIC,54,273,423,14,ES_AUTOHSCROLL
+END
+
+IDD_DLGPOBINI DIALOG  0, 0, 483, 278
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Población Inicial"
+FONT 8, "MS Sans Serif"
+BEGIN
+    PUSHBUTTON      "Salir",IDCANCEL,446,6,30,14
+    LTEXT           "Curso",IDC_STATIC,9,26,39,10
+    LISTBOX         IDC_LISPIN,8,39,462,199,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Docent",IDC_STATIC,58,26,25,10
+    LTEXT           "Dia",IDC_STATIC,86,26,21,10
+    LTEXT           "Aula",IDC_STATIC,114,26,18,10
+    LTEXT           "Horas",IDC_STATIC,134,26,23,10
+END
+
+IDD_DLGPROADI DIALOGEX 0, 0, 500, 409
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Procesos Adicionales"
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    PUSHBUTTON      "Salir",IDCANCEL,441,30,44,23
+    LTEXT           "Penalidad Docente Ciclo",IDC_STATIC,13,324,86,10
+    LISTBOX         IDC_LISPENCIC,13,334,194,23,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LISTBOX         IDC_LISPENAUL,220,334,194,23,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LISTBOX         IDC_LISPENDOC,13,370,194,23,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Penalidad Docente Aula",IDC_STATIC,220,324,87,10
+    LTEXT           "Penalidad Docente",IDC_STATIC,13,359,77,10
+    LISTBOX         IDC_LISDOC,13,22,271,55,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Cursos Docentes",IDC_STATIC,13,10,74,10
+    LTEXT           "Ciclo",IDC_STATIC,177,10,37,10
+    LTEXT           "Aulas",IDC_STATIC,224,10,38,10
+    LISTBOX         IDC_LISPAC,13,90,465,43,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Curso Grupo",IDC_STATIC,13,78,41,10
+    LTEXT           "Dias",IDC_STATIC,110,78,21,10
+    LTEXT           "Docente",IDC_STATIC,71,78,29,10
+    LTEXT           "Aula",IDC_STATIC,146,78,17,10
+    LTEXT           "Hora",IDC_STATIC,166,78,21,10
+    LTEXT           "Aula",IDC_STATIC,207,78,17,10
+    LTEXT           "Hora",IDC_STATIC,227,78,21,10
+    PUSHBUTTON      "Calcula Penalidad",IDC_CALPEN,365,7,73,23
+    PUSHBUTTON      "Gen.UNA Población",IDC_GNPOBL,291,30,73,23
+    LTEXT           "Penal",IDC_STATIC,263,78,19,10
+    LTEXT           "Aptitud",IDC_STATIC,287,78,25,10
+    LTEXT           "D.G.",IDC_STATIC,319,78,21,10
+    LTEXT           "P.Selec.",IDC_STATIC,357,78,21,10
+    LTEXT           "P.Acumul.",IDC_STATIC,402,78,34,10
+    LISTBOX         IDC_LISSP3,13,241,465,35,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LISTBOX         IDC_LISSP4,14,287,465,35,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LISTBOX         IDC_LISSP1,13,145,465,35,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LISTBOX         IDC_LISSP2,13,191,465,35,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "NUEVA Subpoblación (Tuno Mañana) [Teoria] (3 Horas) ",IDC_STATIC,13,180,187,10
+    LTEXT           "Subpoblación (Tuno Mañana) [Teoria] (3 Horas) ",IDC_STATIC,13,134,188,10
+    LISTBOX         IDC_LISSUBPOB,264,360,216,33,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "SubPoblac.",IDC_STATIC,220,359,41,10
+    LTEXT           "Subpoblación (Tuno Tarde) [Teoria] (3 Horas) ",IDC_STATIC,14,230,156,10
+    LTEXT           "NUEVA Subpoblación (Tuno Tarde) [Teoria] (3 Horas) ",IDC_STATIC,14,277,176,10
+    EDITTEXT        IDC_TOTPEN,429,61,30,12,ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER,WS_EX_STATICEDGE
+    LTEXT           "T.Penalidad",IDC_STATIC,383,61,41,10
+    EDITTEXT        IDC_NUMPOB,343,61,18,12,ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER,WS_EX_STATICEDGE
+    LTEXT           "Población",IDC_STATIC,303,61,37,10
+    PUSHBUTTON      "Altera Poblac.Inicial",IDC_ALTASI,291,7,73,23
+    PUSHBUTTON      "Gen.Poblaciones",IDC_GVPOBL,367,30,73,23
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_DLGLISACA, DIALOG
+    BEGIN
+        LEFTMARGIN, 2
+        RIGHTMARGIN, 476
+        BOTTOMMARGIN, 270
+    END
+
+    IDD_DLGLISACF, DIALOG
+    BEGIN
+        LEFTMARGIN, 2
+        RIGHTMARGIN, 496
+        BOTTOMMARGIN, 316
+    END
+
+    IDD_DLGCONAUL, DIALOG
+    BEGIN
+        LEFTMARGIN, 2
+        RIGHTMARGIN, 485
+        BOTTOMMARGIN, 297
+    END
+
+    IDD_DLGPOBINI, DIALOG
+    BEGIN
+        LEFTMARGIN, 2
+        RIGHTMARGIN, 476
+        BOTTOMMARGIN, 270
+    END
+
+    IDD_DLGPROADI, DIALOG
+    BEGIN
+        LEFTMARGIN, 2
+        RIGHTMARGIN, 493
+        BOTTOMMARGIN, 401
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog Info
+//
+
+IDD_DLGLISACF DLGINIT
+BEGIN
+    IDC_LISCIC, 0x403, 2, 0
+0x0049, 
+    IDC_LISCIC, 0x403, 3, 0
+0x4949, "\000" 
+    IDC_LISCIC, 0x403, 4, 0
+0x4949, 0x0049, 
+    IDC_LISCIC, 0x403, 3, 0
+0x5649, "\000" 
+    IDC_LISCIC, 0x403, 2, 0
+0x0056, 
+    IDC_LISCIC, 0x403, 3, 0
+0x4956, "\000" 
+    IDC_LISCIC, 0x403, 4, 0
+0x4956, 0x0049, 
+    IDC_LISCIC, 0x403, 5, 0
+0x4956, 0x4949, "\000" 
+    IDC_LISCIC, 0x403, 3, 0
+0x5849, "\000" 
+    IDC_LISCIC, 0x403, 2, 0
+0x0058, 
+    0
+END
+
+#endif    // Spanish (Mexican) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Spanish resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ESN)
+#ifdef _WIN32
+LANGUAGE LANG_SPANISH, SUBLANG_SPANISH_MODERN
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDB_MENPRE              BITMAP                  "res\\bitmap1.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_ABOUTBOX DIALOG  0, 0, 269, 100
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
+CAPTION "Acerca de ProAHo"
+FONT 8, "MS Sans Serif"
+BEGIN
+    ICON            IDR_MAINFRAME,IDC_STATIC,11,17,20,20
+    LTEXT           "ProAHo Versión 1.0",IDC_STATIC,39,10,119,8,SS_NOPREFIX
+    DEFPUSHBUTTON   "Aceptar",IDOK,212,7,50,14,WS_GROUP
+    LTEXT           "Sistema de Asignación Horarios",IDC_STATIC,39,24,100,8
+END
+
+IDD_LISACA_FORM DIALOGEX 0, 0, 409, 343
+STYLE DS_SETFONT | WS_CHILD
+FONT 8, "MS Sans Serif", 0, 0, 0x1
+BEGIN
+    COMBOBOX        IDC_LISDOC,7,18,184,70,CBS_SIMPLE | CBS_SORT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Lista de Docentes",IDC_STATIC,7,7,122,10
+    EDITTEXT        IDC_TOTCDO,371,168,22,12,ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER,WS_EX_STATICEDGE
+    LTEXT           "Lista de Cursos y Docentes",IDC_STATIC,7,158,94,10
+    EDITTEXT        IDC_TIPNOT,339,113,51,12,ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER,WS_EX_STATICEDGE
+    EDITTEXT        IDC_TIPEVA,339,97,51,12,ES_AUTOHSCROLL | ES_READONLY | NOT WS_BORDER,WS_EX_STATICEDGE
+    COMBOBOX        IDC_LISAUL,199,18,184,70,CBS_SIMPLE | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Lista de Aulas",IDC_STATIC,199,7,112,10
+    LTEXT           "Lista de Cursos y Horas",IDC_STATIC,7,87,112,10
+    LISTBOX         IDC_LISCDO,7,182,387,60,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Curso",IDC_STATIC,7,170,75,10
+    LTEXT           "Docente",IDC_STATIC,131,170,75,10
+    LTEXT           "Grupo T.Aula  Hor.  Ciclo",IDC_STATIC,246,170,103,10
+    LISTBOX         IDC_LISHOR,7,246,388,90,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+    LISTBOX         IDC_LISCHO,7,97,326,58,LBS_NOINTEGRALHEIGHT | WS_VSCROLL | WS_TABSTOP
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO 
+BEGIN
+    IDD_ABOUTBOX, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 262
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 93
+    END
+
+    IDD_LISACA_FORM, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 402
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 336
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_LISACATYPE          ICON                    "res\\LisACaDoc.ico"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDR_MAINFRAME ACCELERATORS 
+BEGIN
+    "N",            ID_FILE_NEW,            VIRTKEY, CONTROL
+    "O",            ID_FILE_OPEN,           VIRTKEY, CONTROL
+    "S",            ID_FILE_SAVE,           VIRTKEY, CONTROL
+    "P",            ID_FILE_PRINT,          VIRTKEY, CONTROL
+    "Z",            ID_EDIT_UNDO,           VIRTKEY, CONTROL
+    "X",            ID_EDIT_CUT,            VIRTKEY, CONTROL
+    "C",            ID_EDIT_COPY,           VIRTKEY, CONTROL
+    "V",            ID_EDIT_PASTE,          VIRTKEY, CONTROL
+    VK_BACK,        ID_EDIT_UNDO,           VIRTKEY, ALT
+    VK_DELETE,      ID_EDIT_CUT,            VIRTKEY, SHIFT
+    VK_INSERT,      ID_EDIT_COPY,           VIRTKEY, CONTROL
+    VK_INSERT,      ID_EDIT_PASTE,          VIRTKEY, SHIFT
+    VK_F6,          ID_NEXT_PANE,           VIRTKEY 
+    VK_F6,          ID_PREV_PANE,           VIRTKEY, SHIFT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Version
+//
+
+VS_VERSION_INFO VERSIONINFO
+ FILEVERSION 1,0,0,1
+ PRODUCTVERSION 1,0,0,1
+ FILEFLAGSMASK 0x3fL
+#ifdef _DEBUG
+ FILEFLAGS 0x1L
+#else
+ FILEFLAGS 0x0L
+#endif
+ FILEOS 0x4L
+ FILETYPE 0x1L
+ FILESUBTYPE 0x0L
+BEGIN
+    BLOCK "StringFileInfo"
+    BEGIN
+        BLOCK "0C0A04B0"
+        BEGIN
+            VALUE "FileDescription", "Aplicación MFC LisACa"
+            VALUE "FileVersion", "1, 0, 0, 1"
+            VALUE "InternalName", "LisACa"
+            VALUE "LegalCopyright", "Copyright (C) 2006"
+            VALUE "OriginalFilename", "LisACa.EXE"
+            VALUE "ProductName", "Aplicación LisACa"
+            VALUE "ProductVersion", "1, 0, 0, 1"
+        END
+    END
+    BLOCK "VarFileInfo"
+    BEGIN
+        VALUE "Translation", 0xc0a, 1200
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE 
+BEGIN
+    IDR_MAINFRAME           "Proceso de Asignación Horaria\n\nLisACa\n\n\nLisACa.Document\nLisACa Document"
+END
+
+STRINGTABLE 
+BEGIN
+    AFX_IDS_APP_TITLE       "LisACa"
+    AFX_IDS_IDLEMESSAGE     "Preparado"
+END
+
+STRINGTABLE 
+BEGIN
+    ID_INDICATOR_EXT        "EXT"
+    ID_INDICATOR_CAPS       "MAY"
+    ID_INDICATOR_NUM        "NUM"
+    ID_INDICATOR_SCRL       "DESP"
+    ID_INDICATOR_OVR        "SOB"
+    ID_INDICATOR_REC        "GRB"
+END
+
+STRINGTABLE 
+BEGIN
+    ID_FILE_NEW             "Crea un nuevo documento\nNuevo"
+    ID_FILE_OPEN            "Abre un documento ya existente\nAbrir"
+    ID_FILE_CLOSE           "Cierra el documento activo\nCerrar"
+    ID_FILE_SAVE            "Guarda el documento activo\nGuardar"
+    ID_FILE_SAVE_AS         "Guarda el documento activo con un nuevo nombre\nGuardar como"
+    ID_FILE_PAGE_SETUP      "Cambia las opciones de impresión\nPreparar página"
+    ID_FILE_PRINT_SETUP     "Cambia las opciones de impresora y de impresión\nConfigurar impresora"
+    ID_FILE_PRINT           "Imprime el documento activo\nImprimir"
+    ID_FILE_PRINT_PREVIEW   "Muestra páginas completas\nPresentación preliminar"
+END
+
+STRINGTABLE 
+BEGIN
+    ID_APP_ABOUT            "Muestra información del programa, número de versión y copyright\nAcerca de"
+    ID_APP_EXIT             "Sale de la aplicación; le pide que guarde los documentos\nSalir"
+END
+
+STRINGTABLE 
+BEGIN
+    ID_FILE_MRU_FILE1       "Abre este documento"
+    ID_FILE_MRU_FILE2       "Abre este documento"
+    ID_FILE_MRU_FILE3       "Abre este documento"
+    ID_FILE_MRU_FILE4       "Abre este documento"
+    ID_FILE_MRU_FILE5       "Abre este documento"
+    ID_FILE_MRU_FILE6       "Abre este documento"
+    ID_FILE_MRU_FILE7       "Abre este documento"
+    ID_FILE_MRU_FILE8       "Abre este documento"
+    ID_FILE_MRU_FILE9       "Abre este documento"
+    ID_FILE_MRU_FILE10      "Abre este documento"
+    ID_FILE_MRU_FILE11      "Abre este documento"
+    ID_FILE_MRU_FILE12      "Abre este documento"
+    ID_FILE_MRU_FILE13      "Abre este documento"
+    ID_FILE_MRU_FILE14      "Abre este documento"
+    ID_FILE_MRU_FILE15      "Abre este documento"
+    ID_FILE_MRU_FILE16      "Abre este documento"
+END
+
+STRINGTABLE 
+BEGIN
+    ID_NEXT_PANE            "Cambia a la siguiente sección de ventana\nSiguiente sección"
+    ID_PREV_PANE            "Vuelve a la sección de ventana anterior\nSección anterior"
+END
+
+STRINGTABLE 
+BEGIN
+    ID_WINDOW_SPLIT         "Divide la ventana activa en secciones\nDividir"
+END
+
+STRINGTABLE 
+BEGIN
+    ID_EDIT_CLEAR           "Borra la selección\nBorrar"
+    ID_EDIT_CLEAR_ALL       "Borra todo\nBorrar todo"
+    ID_EDIT_COPY            "Copia la selección y la coloca en el portapapeles\nCopiar"
+    ID_EDIT_CUT             "Corta la selección y la coloca en el portapapeles\nCortar"
+    ID_EDIT_FIND            "Buscaa el texto especificado\nBuscar"
+    ID_EDIT_PASTE           "Inserta el contenido del portapapeles\nPegar"
+    ID_EDIT_REPEAT          "Repite la última acción\nRepetir"
+    ID_EDIT_REPLACE         "Reemplaza texto específico por otro texto\nReemplazar"
+    ID_EDIT_SELECT_ALL      "Selecciona todo el documento\nSeleccionar todo"
+    ID_EDIT_UNDO            "Deshace la última acción\nDeshacer"
+    ID_EDIT_REDO            "Rehace la acción que acaba de deshacerse\nRehacer"
+END
+
+STRINGTABLE 
+BEGIN
+    ID_VIEW_TOOLBAR         "Muestra u oculta la barra de herramientas\nAlternar Barra de herramientas"
+    ID_VIEW_STATUS_BAR      "Muestra u oculta la barra de estado\nAlternar Barra de estado"
+END
+
+STRINGTABLE 
+BEGIN
+    AFX_IDS_SCSIZE          "Cambia el tamaño de la ventana"
+    AFX_IDS_SCMOVE          "Cambia la posición de la ventana"
+    AFX_IDS_SCMINIMIZE      "Reduce la ventana a un icono"
+    AFX_IDS_SCMAXIMIZE      "Agranda la ventana al tamaño completo"
+    AFX_IDS_SCNEXTWINDOW    "Cambia a la ventana del siguiente documento"
+    AFX_IDS_SCPREVWINDOW    "Cambia a la ventana del documento anterior"
+    AFX_IDS_SCCLOSE         "Cierra la ventana activa y le pide que guarde los documentos"
+END
+
+STRINGTABLE 
+BEGIN
+    AFX_IDS_SCRESTORE       "Restaura la ventana a su tamaño normal"
+    AFX_IDS_SCTASKLIST      "Activa la lista de tareas"
+END
+
+STRINGTABLE 
+BEGIN
+    AFX_IDS_PREVIEW_CLOSE   "Cierra el modo de presentación preliminar\nCancelar presentación preliminar"
+END
+
+#endif    // Spanish resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////
+// Spanish (Peru) resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ESR)
+#ifdef _WIN32
+LANGUAGE LANG_SPANISH, SUBLANG_SPANISH_PERU
+#pragma code_page(1252)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDR_MAINFRAME           ICON                    "res\\icon1.ico"
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE 
+BEGIN
+    "#define _AFX_NO_SPLITTER_RESOURCES\r\n"
+    "#define _AFX_NO_OLE_RESOURCES\r\n"
+    "#define _AFX_NO_TRACKER_RESOURCES\r\n"
+    "#define _AFX_NO_PROPERTY_RESOURCES\r\n"
+    "\r\n"
+    "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ESP)\r\n"
+    "#ifdef _WIN32\r\n"
+    "LANGUAGE 10, 3\r\n"
+    "#pragma code_page(1252)\r\n"
+    "#endif //_WIN32\r\n"
+    "#include ""res\\LisACa.rc2""  // non-Microsoft Visual C++ edited resources\r\n"
+    "#include ""l.esp\\afxres.rc""          // Standard components\r\n"
+    "#include ""l.esp\\afxprint.rc""        // printing/print preview resources\r\n"
+    "#endif\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+#endif    // Spanish (Peru) resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+#define _AFX_NO_SPLITTER_RESOURCES
+#define _AFX_NO_OLE_RESOURCES
+#define _AFX_NO_TRACKER_RESOURCES
+#define _AFX_NO_PROPERTY_RESOURCES
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ESP)
+#ifdef _WIN32
+LANGUAGE 10, 3
+#pragma code_page(1252)
+#endif //_WIN32
+#include "res\LisACa.rc2"  // non-Microsoft Visual C++ edited resources
+//#include "l.esp\afxres.rc"          // Standard components
+//#include "l.esp\afxprint.rc"        // printing/print preview resources
+#endif
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
