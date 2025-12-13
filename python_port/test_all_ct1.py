@@ -21,7 +21,7 @@ from src.data_loader import CT1_MAP
 def _trim(bs):
     """Decodifica bytes eliminando nulls y espacios."""
     if isinstance(bs, bytes):
-        return bs.decode("latin1", errors="ignore").rstrip("\x00 ").strip()
+        return bs.decode("cp1252", errors="ignore").rstrip("\x00 ").strip()
     return str(bs).strip()
 
 def get_field_names(obj):

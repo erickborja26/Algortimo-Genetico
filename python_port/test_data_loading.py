@@ -13,7 +13,7 @@ from src.est_cho import SEstCHo
 def _trim(bs):
     """Decodifica bytes eliminando nulls y espacios."""
     if isinstance(bs, bytes):
-        return bs.decode("latin1", errors="ignore").rstrip("\x00 ").strip()
+        return bs.decode("cp1252", errors="ignore").rstrip("\x00 ").strip()
     return str(bs).strip()
 
 def probar_cursos():

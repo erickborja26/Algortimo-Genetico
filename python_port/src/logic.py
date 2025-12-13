@@ -7,12 +7,12 @@ from typing import Dict, List, Tuple, Optional
 from pathlib import Path
 import re
 
-from . import SEstAul, SEstCDA, SEstCDo, SEstCHo, SEstCur, SEstDoc, SEstTAu, SEstTHo
+from . import SEstAul, SEstCDA, SEstCDo, SEstCHo, SEstCur, SEstDoc, SEstPAd, SEstTAu, SEstTHo
 from .state import GlobalState
 
 
 def _trim(bs: bytes) -> str:
-    return bs.decode("latin1", errors="ignore").rstrip("\x00 ").strip()
+    return bs.decode("cp1252", errors="ignore").rstrip("\x00 ").strip()
 
 
 @dataclass
@@ -25,6 +25,7 @@ class LisACaLogic:
     cursos: List[SEstCur] = field(default_factory=list)
     cursos_hora: List[SEstCHo] = field(default_factory=list)
     cursos_docente: List[SEstCDo] = field(default_factory=list)
+    config: Optional[SEstPAd] = None
 
     # Arreglos de disponibilidad/ocupación (equivalentes a sArrHDA*)
     hda_aulas: List[List[List[str]]] = field(default_factory=list)   # [aula][dia][hora] -> etiqueta o "D"
@@ -36,10 +37,17 @@ class LisACaLogic:
     pen_ciclo: List[int] = field(default_factory=list)
     pen_aula: List[int] = field(default_factory=list)
     pen_docente: List[int] = field(default_factory=list)
+    
+    # Sub-poblaciones (clasificación por ciclo/horas)
+    sub_poblaciones: Dict[int, List[int]] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         self._load_basics()
         self._init_disponibilidad()
+        # DESHABILITADO TEMPORALMENTE para debug - causa bucles infinitos
+        # self._clasificar_subpoblaciones()
+        # Inicializar sub_poblaciones vacío como fallback
+        self.sub_poblaciones = {i: [] for i in range(15)}
 
     def _load_basics(self) -> None:
         """Replica CarDatTAu, CarDesAul, CarDocent, CarCursos, CarDesCHo, CarDesCDo usando GlobalState."""
@@ -50,10 +58,23 @@ class LisACaLogic:
         self.cursos = list(data.get("TCursos.ct1", []))
         # Atributos de horas por curso (TCHoras.ct1)
         self.cursos_hora = list(data.get("TCHoras.ct1", []))
-        # Cursos-Docentes: usamos TProfes.ct1 (y anexamos TAsiPro.ct1 si existe)
-        self.cursos_docente = list(data.get("TProfes.ct1", []))
+        # Cursos-Docentes: usamos TCDocen.ct1 (la estructura correcta de 32 bytes)
+        # y anexamos TAsiPro.ct1 si existe (asignaciones adicionales)
+        self.cursos_docente = list(data.get("TCDocen.ct1", []))
         if "TAsiPro.ct1" in data:
             self.cursos_docente.extend(data["TAsiPro.ct1"])
+        # Carga configuración global (TParAdm.ct1)
+        config_data = data.get("TParAdm.ct1", [])
+        if config_data:
+            self.config = config_data[0]
+        
+        # FILTRADO CRÍTICO: Eliminar registros vacíos (llenos de \x00 del binario)
+        # que causaban penalidades astronómicas por falsos positivos en startswith("")
+        self.cursos_docente = [x for x in self.cursos_docente if _trim(x.m_szcodcur)]
+        self.docentes = [x for x in self.docentes if _trim(x.m_szcoddoc)]
+        self.cursos = [x for x in self.cursos if _trim(x.m_szcodcur)]
+        self.aulas = [x for x in self.aulas if _trim(x.m_szcodaul)]
+        self.cursos_hora = [x for x in self.cursos_hora if _trim(x.m_szcodcur)]
 
     def _init_disponibilidad(self) -> None:
         """Inicializa estructuras de disponibilidad en 'D' (Disponible), emulando las tablas 4D del C++."""
@@ -71,6 +92,94 @@ class LisACaLogic:
         self.pen_ciclo = [0 for _ in range(total_cd)]
         self.pen_aula = [0 for _ in range(total_cd)]
         self.pen_docente = [0 for _ in range(total_cd)]
+
+    def _clasificar_subpoblaciones(self) -> None:
+        """
+        Clasifica los indices de cursos-docentes en 15 sub-poblaciones (0-14)
+        basandose en el Ciclo del curso y las Horas semanales.
+        
+        NOTA: Dado que los datos en TProfes.ct1/TAsiPro.ct1 no contienen la información
+        esperada de cursos, esta clasificación se basa en los cursos que aparecen en
+        TCHoras.ct1 (que solo tiene 65 cursos únicos con información de horario).
+        
+        Reglas:
+        - Procesa cursos de TCHoras que tengan tipo de aula empezando con "A" (Teoría).
+        - Turnos (base):
+          * Mañana (base=0): Ciclos 0-3 (I-IV)
+          * Tarde (base=5): Ciclos 4-6 (V-VII)
+          * Noche (base=10): Ciclos >= 7 (VIII-X)
+        - Offset por horas (suma total):
+          * 6 horas -> offset=0
+          * 5 horas -> offset=1
+          * 4 horas -> offset=2
+          * 3 horas -> offset=3
+          * 2 horas -> offset=4
+        - sub_poblacion = base + offset (rango 0-14)
+        """
+        # Inicializar 15 sub-poblaciones
+        self.sub_poblaciones = {i: [] for i in range(15)}
+        
+        # Construir un mapa de cursos a sus horas totales de teoría (tipo A)
+        cursos_horas_teoria = {}
+        for ch in self.cursos_hora:
+            tipo_aula = _trim(ch.m_szctaula)
+            # Solo contar si empieza con "A" (Teoría)
+            if not tipo_aula.startswith("A"):
+                continue
+            
+            codcur = _trim(ch.m_szcodcur)
+            num_horas_str = _trim(ch.m_sznumhor)
+            try:
+                num_horas = int(num_horas_str)
+            except (ValueError, AttributeError):
+                num_horas = 0
+            
+            # Sumar horas por curso
+            if codcur not in cursos_horas_teoria:
+                cursos_horas_teoria[codcur] = 0
+            cursos_horas_teoria[codcur] += num_horas
+        
+        # Procesar cada curso-docente
+        for idx_cd, cd in enumerate(self.cursos_docente):
+            codcur = _trim(cd.m_szcodcur)
+            
+            # Solo procesar si tiene horas de teoría
+            if codcur not in cursos_horas_teoria:
+                continue
+            
+            num_horas = cursos_horas_teoria[codcur]
+            
+            # Obtener ciclo del curso
+            ciclo = self._ciclo_from_curso(codcur)
+            
+            # Determinar base según turno (ciclo)
+            if ciclo <= 3:
+                base = 0  # Mañana (I-IV)
+            elif ciclo <= 6:
+                base = 5  # Tarde (V-VII)
+            else:
+                base = 10  # Noche (VIII-X)
+            
+            # Determinar offset según horas
+            if num_horas == 6:
+                offset = 0
+            elif num_horas == 5:
+                offset = 1
+            elif num_horas == 4:
+                offset = 2
+            elif num_horas == 3:
+                offset = 3
+            elif num_horas == 2:
+                offset = 4
+            else:
+                offset = 0
+            
+            # Calcular índice de sub-población
+            sub_pob_idx = base + offset
+            
+            # Asegurar que esté dentro del rango 0-14
+            if 0 <= sub_pob_idx <= 14:
+                self.sub_poblaciones[sub_pob_idx].append(idx_cd)
 
     def etiqueta_cd(self, idx_cd: int) -> str:
         """Devuelve etiqueta 'CUR DOC GRU' de 9 chars igual que el código C."""
@@ -117,77 +226,113 @@ class LisACaLogic:
 
     def calc_penalties(self) -> Dict[str, List[str]]:
         """
-        Traduce la lógica central de OnCalpen:
-        - Cuenta cruces por ciclo/día/hora y por aula/día/hora.
-        - Calcula penalidades por ciclo, aula y docente para cada curso-docente.
-        Devuelve cadenas legibles (similares a los listbox del UI) para inspección/depuración.
+        Traduce la lógica central de OnCalpen - OPTIMIZADO CON PESOS DE TESIS.
+        Una única pasada sobre los slots con caché de ciclos y docentes.
+        Penalidades ponderadas según documento de tesis:
+        - Ciclo: factor 5
+        - Aula: factor 4
+        - Docente: factor 2
         """
         # Reinicia contadores
-        self.pen_ciclo = [0 for _ in self.pen_ciclo]
-        self.pen_aula = [0 for _ in self.pen_aula]
-        self.pen_docente = [0 for _ in self.pen_docente]
+        num_cd = len(self.cursos_docente)
+        self.pen_ciclo = [0] * num_cd
+        self.pen_aula = [0] * num_cd
+        self.pen_docente = [0] * num_cd
 
-        # Conteo de ocupación por ciclo/día/hora
-        cic_occ = [[[0 for _ in range(18)] for _ in range(6)] for _ in range(10)]
+        # PRECACHEA: ciclos y docentes
+        ciclo_cache = {}
+        doc_idx_cache = {}
+        
+        for cur in self.cursos:
+            codcur = _trim(cur.m_szcodcur)
+            if not codcur:  # Medida de seguridad: saltar registros vacíos
+                continue
+            cic = _trim(cur.m_szciccur)
+            if len(cic) >= 2 and cic[0].isdigit() and cic[1].isdigit():
+                val = int(cic[:2]) - 1
+                ciclo_cache[codcur] = val if 0 <= val < 10 else 0
+            else:
+                ciclo_cache[codcur] = 0
+        
+        for i, doc in enumerate(self.docentes):
+            coddoc = _trim(doc.m_szcoddoc)
+            if not coddoc:  # Medida de seguridad: saltar registros vacíos
+                continue
+            doc_idx_cache[coddoc] = i
+
+        # CONSTRUCCIÓN DEL MAPA: tag_9chars -> (idx_cd, ciclo, doc_idx)
+        tag_to_info = {}
         for idx_cd, cd in enumerate(self.cursos_docente):
             codcur = _trim(cd.m_szcodcur)
+            if not codcur:  # Medida de seguridad: saltar registros vacíos
+                continue
             coddoc = _trim(cd.m_szcoddoc)
             codgru = _trim(cd.m_szcodgru)
-            ciclo = self._ciclo_from_curso(codcur)
-            for aula_idx, aula in enumerate(self.aulas):
-                for dia in range(6):
-                    for hora in range(18):
-                        tag = self.hda_aulas[aula_idx][dia][hora]
-                        tag2 = self.hda_aulas2[aula_idx][dia][hora]
-                        if tag.startswith(codcur) and tag[3:6] == coddoc and tag[6:9] == codgru:
-                            cic_occ[ciclo][dia][hora] += 1
-                        if tag2.startswith(codcur) and tag2[3:6] == coddoc and tag2[6:9] == codgru:
-                            cic_occ[ciclo][dia][hora] += 1
+            ciclo = ciclo_cache.get(codcur, 0)
+            doc_idx = doc_idx_cache.get(coddoc, -1)
+            tag = f"{codcur[:3]}{coddoc[0:3]}{codgru[0:3]}"
+            tag_to_info[tag] = (idx_cd, ciclo, doc_idx)
 
-        # Penalidad por ciclo (más de una asignación en mismo ciclo/día/hora)
-        for ciclo in range(10):
-            for dia in range(6):
-                for hora in range(18):
-                    if cic_occ[ciclo][dia][hora] > 1:
-                        exceso = cic_occ[ciclo][dia][hora] - 1
-                        # penaliza a todos los CD que ocupan ese slot
-                        for idx_cd, cd in enumerate(self.cursos_docente):
-                            codcur = _trim(cd.m_szcodcur)
-                            coddoc = _trim(cd.m_szcoddoc)
-                            codgru = _trim(cd.m_szcodgru)
-                            cur_ciclo = self._ciclo_from_curso(codcur)
-                            if cur_ciclo != ciclo:
-                                continue
-                            for aula_idx in range(len(self.aulas)):
-                                for tag in (self.hda_aulas[aula_idx][dia][hora], self.hda_aulas2[aula_idx][dia][hora]):
-                                    if tag.startswith(codcur) and tag[3:6] == coddoc and tag[6:9] == codgru:
-                                        self.pen_ciclo[idx_cd] += exceso
-                                        break
-
-        # Penalidad por aula: más de un curso en mismo aula/día/hora
-        for aula_idx in range(len(self.aulas)):
+        # ÚNICA PASADA SOBRE SLOTS
+        slot_to_cds = {}  # (ciclo, dia, hora) -> [idx_cd, ...]
+        aula_slot_to_cds = {}  # (aula_idx, dia, hora) -> [idx_cd, ...]
+        doc_slot_to_cds = {}  # (doc_idx, dia, hora) -> [idx_cd, ...]
+        
+        for aula_idx in range(len(self.hda_aulas)):
             for dia in range(6):
                 for hora in range(18):
                     tags = []
-                    if self.hda_aulas[aula_idx][dia][hora] != "D":
-                        tags.append(self.hda_aulas[aula_idx][dia][hora])
-                    if self.hda_aulas2[aula_idx][dia][hora] != "D":
-                        tags.append(self.hda_aulas2[aula_idx][dia][hora])
-                    if len(tags) > 1:
-                        for tag in tags:
-                            for idx_cd, cd in enumerate(self.cursos_docente):
-                                if tag.startswith(_trim(cd.m_szcodcur)) and tag[3:6] == _trim(cd.m_szcoddoc):
-                                    self.pen_aula[idx_cd] += len(tags) - 1
-
-        # Penalidad por docente: más de un curso en mismo docente/día/hora
-        for doc_idx in range(len(self.docentes)):
-            for dia in range(6):
-                for hora in range(18):
-                    occ = 1 if self.hda_docentes[doc_idx][dia][hora] == "A" else 0
-                    if occ > 1:
-                        for idx_cd, cd in enumerate(self.cursos_docente):
-                            if self._idx_doc(_trim(cd.m_szcoddoc)) == doc_idx:
-                                self.pen_docente[idx_cd] += occ - 1
+                    tag = self.hda_aulas[aula_idx][dia][hora]
+                    tag2 = self.hda_aulas2[aula_idx][dia][hora]
+                    if tag != "D" and len(tag) >= 9:
+                        tags.append(tag)
+                    if tag2 != "D" and len(tag2) >= 9:
+                        tags.append(tag2)
+                    
+                    for tag in tags:
+                        if tag in tag_to_info:
+                            idx_cd, ciclo, doc_idx = tag_to_info[tag]
+                            
+                            # Ciclo
+                            key_cic = (ciclo, dia, hora)
+                            if key_cic not in slot_to_cds:
+                                slot_to_cds[key_cic] = []
+                            slot_to_cds[key_cic].append(idx_cd)
+                            
+                            # Aula
+                            key_aul = (aula_idx, dia, hora)
+                            if key_aul not in aula_slot_to_cds:
+                                aula_slot_to_cds[key_aul] = []
+                            aula_slot_to_cds[key_aul].append(idx_cd)
+                            
+                            # Docente
+                            if doc_idx >= 0:
+                                key_doc = (doc_idx, dia, hora)
+                                if key_doc not in doc_slot_to_cds:
+                                    doc_slot_to_cds[key_doc] = []
+                                doc_slot_to_cds[key_doc].append(idx_cd)
+        
+        # APLICAR PENALIDADES CON PESOS DE TESIS
+        # Factor 5 para penalidad de ciclo
+        for cd_list in slot_to_cds.values():
+            if len(cd_list) > 1:
+                penalty = (len(cd_list) - 1) * 5
+                for idx_cd in cd_list:
+                    self.pen_ciclo[idx_cd] += penalty
+        
+        # Factor 4 para penalidad de aula
+        for cd_list in aula_slot_to_cds.values():
+            if len(cd_list) > 1:
+                penalty = (len(cd_list) - 1) * 4
+                for idx_cd in cd_list:
+                    self.pen_aula[idx_cd] += penalty
+        
+        # Factor 2 para penalidad de docente
+        for cd_list in doc_slot_to_cds.values():
+            if len(cd_list) > 1:
+                penalty = (len(cd_list) - 1) * 2
+                for idx_cd in cd_list:
+                    self.pen_docente[idx_cd] += penalty
 
         # Salidas legibles
         lines_pen_cic = []

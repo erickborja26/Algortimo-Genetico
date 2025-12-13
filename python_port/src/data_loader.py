@@ -23,8 +23,8 @@ CT1_MAP: dict[str, Type] = {
     "TAulas.ct1": SEstAul,
     "TTAula.ct1": SEstTAu,
     "TTHora.ct1": SEstTHo,
-    "TCDocen.ct1": SEstDoc,
-    "TDocent.ct1": SEstDoc,  # alias observado en carpeta
+    "TCDocen.ct1": SEstCDo,
+    "TDocent.ct1": SEstDoc,  # estructura de Docentes (con nombres largos)
     "TCursos.ct1": SEstCur,
     "TCHoras.ct1": SEstCHo,
     "TCDAlum.ct1": SEstCDA,
