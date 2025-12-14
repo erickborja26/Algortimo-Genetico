@@ -600,15 +600,16 @@ class LisACaLogic:
 
     def load_from_lsolhor(self, path: str | Path = "AsiHor/LSolHor.txt") -> None:
         """
-        Parsea LSolHor.txt (salida del exe) y llena las tablas de ocupación.
-        Usa: ciclo, cod.curso, cod.docente, aula (se usa también como grupo por falta de campo explícito),
-        día y rango horario.
+        Parsea LSolHor.txt y llena la matriz hda_aulas con etiquetas formateadas.
+        Formato esperado:
+        Ciclo Cod_Curso Nombre_Curso ... Cod_Docente Nombre_Docente ... Aula Día HH:MM HH:MM
         """
         p = Path(path)
         if not p.exists():
             return
+
         text = p.read_text(encoding="latin1", errors="ignore")
-        # Mapeo de días
+
         dia_map = {
             "Lunes": 0,
             "Martes": 1,
@@ -618,54 +619,57 @@ class LisACaLogic:
             "Sabado": 5,
             "Sábado": 5,
         }
-        # Tabla de tiempos (minutos) a slot
-        times: List[int] = []
-        for line in text.splitlines():
-            parts = line.split()
-            if len(parts) < 5:
-                continue
-            for t in parts[-2:]:
-                if re.match(r"\d{2}:\d{2}", t):
-                    hh, mm = map(int, t.split(":"))
-                    times.append(hh * 60 + mm)
-        uniq_times = sorted(set(times))
-        slots: List[Tuple[int, int]] = []
-        for i in range(len(uniq_times) - 1):
-            slots.append((uniq_times[i], uniq_times[i + 1]))
 
-        def slot_indices(start_min: int, end_min: int) -> List[int]:
-            idxs = []
-            for idx, (a, b) in enumerate(slots):
-                if a >= end_min or b <= start_min:
+        hora_pattern = re.compile(r"^(\d{2}):(\d{2})$")
+        doc_pattern = re.compile(r"(D\d+)")
+
+        for line in text.splitlines():
+            line = line.strip()
+            if not line:
+                continue
+
+            tokens = line.split()
+            if len(tokens) < 8:
+                continue
+
+            try:
+                hora_fin_str = tokens[-1]
+                if not hora_pattern.match(hora_fin_str):
                     continue
-                idxs.append(idx)
-            return idxs
+                hh_fin, mm_fin = map(int, hora_fin_str.split(":"))
+                end_min = hh_fin * 60 + mm_fin
 
-        for line in text.splitlines():
-            parts = line.split()
-            if len(parts) < 8:
+                hora_ini_str = tokens[-2]
+                if not hora_pattern.match(hora_ini_str):
+                    continue
+                hh_ini, mm_ini = map(int, hora_ini_str.split(":"))
+                start_min = hh_ini * 60 + mm_ini
+
+                dia_str = tokens[-3]
+                if dia_str not in dia_map:
+                    continue
+                dia_idx = dia_map[dia_str]
+
+                aula_cod = tokens[-4]
+                cod_cur = tokens[1]
+
+                doc_match = doc_pattern.search(line)
+                if not doc_match:
+                    continue
+                cod_doc = doc_match.group(1)
+
+                cd_idx = self._find_curso_docente(cod_cur, cod_doc, aula_cod)
+                aula_idx = self._idx_aula(aula_cod)
+
+                if cd_idx < 0 or aula_idx < 0:
+                    continue
+
+                for h in range(start_min // 60, end_min // 60):
+                    if h < 18:
+                        self.asignar_slot(aula_idx, dia_idx, h, cd_idx, lista=1)
+
+            except (IndexError, ValueError, AttributeError):
                 continue
-            if not re.match(r"\d{2}:\d{2}", parts[-1]):
-                continue
-            hora_fin = parts[-1]
-            hora_ini = parts[-2]
-            dia_str = parts[-3]
-            aula_cod = parts[-4]
-            cod_doc = parts[3]
-            cod_cur = parts[1]
-            dia_idx = dia_map.get(dia_str, None)
-            if dia_idx is None:
-                continue
-            start_min = int(hora_ini[:2]) * 60 + int(hora_ini[3:5])
-            end_min = int(hora_fin[:2]) * 60 + int(hora_fin[3:5])
-            horas = slot_indices(start_min, end_min)
-            cd_idx = self._find_curso_docente(cod_cur, cod_doc, aula_cod)
-            aula_idx = self._idx_aula(aula_cod)
-            if cd_idx < 0 or aula_idx < 0:
-                continue
-            for h in horas:
-                if h < 18:
-                    self.asignar_slot(aula_idx, dia_idx, h, cd_idx, lista=1)
 
     def _find_curso_docente(self, cod_cur: str, cod_doc: str, cod_gru: str) -> int:
         """

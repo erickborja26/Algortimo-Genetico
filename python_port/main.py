@@ -33,6 +33,33 @@ def main() -> None:
     ga_res = logic.run_ga(generaciones=1, pob_size=5, mut_prob=0.2)
     print("\nGA result:", ga_res)
 
+    # Llamar a la función para imprimir el horario final
+    imprimir_horario_final(logic)
+
+
+def imprimir_horario_final(logic):
+    """
+    Imprime una tabla con las columnas: CURSO, GRUPO, DOCENTE, DIA, HORA, AULA.
+    Recorre las matrices hda_aulas y hda_aulas2.
+    """
+    dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado"]
+
+    print("\nHorario Final:")
+    print(f"{'CURSO':<10}{'GRUPO':<10}{'DOCENTE':<10}{'DIA':<10}{'HORA':<10}{'AULA':<10}")
+    print("-" * 60)
+
+    for aula_idx, dias_aula in enumerate(logic.hda_aulas):
+        aula_nombre = logic.aulas[aula_idx].m_szcodaul.decode('latin1').strip()
+        for dia_idx, horas in enumerate(dias_aula):
+            for hora_idx, etiqueta in enumerate(horas):
+                if etiqueta != "D":
+                    curso = etiqueta[:3].strip()
+                    docente = etiqueta[3:6].strip()
+                    grupo = etiqueta[6:].strip()
+                    hora = f"{hora_idx + 8:02}:00"
+                    dia = dias[dia_idx]
+                    print(f"{curso:<10}{grupo:<10}{docente:<10}{dia:<10}{hora:<10}{aula_nombre:<10}")
+
 
 if __name__ == "__main__":
     main()
