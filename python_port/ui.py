@@ -19,6 +19,7 @@ class FrontendApp(ttk.Frame):
         self.penalidades_list = None
         self.poblacion_list = None
         self.horarios_tree = None
+        self.horario_final_tree = None
         self.aula_var = tk.StringVar()
 
         self._build_ui()
@@ -57,6 +58,19 @@ class FrontendApp(ttk.Frame):
             self.horarios_tree.column(f"H{i}", width=45, anchor=tk.CENTER)
         self.horarios_tree.pack(fill=tk.BOTH, expand=True, padx=6, pady=6)
 
+        # Tab horario final (formato tabla como el print de main.py)
+        tab_final = ttk.Frame(nb)
+        nb.add(tab_final, text="Horario final")
+        cols = ("CURSO", "GRUPO", "DOCENTE", "DIA", "HORA", "AULA")
+        self.horario_final_tree = ttk.Treeview(tab_final, columns=cols, show="headings")
+        for col, width in zip(cols, (80, 80, 90, 90, 70, 90)):
+            self.horario_final_tree.heading(col, text=col)
+            self.horario_final_tree.column(col, width=width, anchor=tk.CENTER)
+        vsb = ttk.Scrollbar(tab_final, orient="vertical", command=self.horario_final_tree.yview)
+        self.horario_final_tree.configure(yscrollcommand=vsb.set)
+        self.horario_final_tree.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=(6, 0), pady=6)
+        vsb.pack(side=tk.RIGHT, fill=tk.Y, padx=(0, 6), pady=6)
+
         # Botonera
         btn_bar = ttk.Frame(self)
         btn_bar.pack(fill=tk.X, pady=6)
@@ -81,6 +95,7 @@ class FrontendApp(ttk.Frame):
             self.aula_combo.current(0)
         self._calc_penalidades()
         self._refresh_horarios()
+        self._refresh_horario_final()
 
     def _calc_penalidades(self) -> None:
         if not self.logic:
@@ -96,6 +111,7 @@ class FrontendApp(ttk.Frame):
             self.poblacion_list.insert(tk.END, line)
         # refresca horarios
         self._refresh_horarios()
+        self._refresh_horario_final()
 
     def _run_ga(self) -> None:
         if not self.logic:
@@ -116,13 +132,39 @@ class FrontendApp(ttk.Frame):
         # Limpiar
         for item in self.horarios_tree.get_children():
             self.horarios_tree.delete(item)
-        dias = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"]
+        dias = ["Lun", "Mar", "Mie", "Jue", "Vie", "Sab"]
         for dia in range(6):
             values = []
             for hora in range(18):
                 tag = self.logic.hda_aulas[aula_idx][dia][hora]
                 values.append(tag if tag != "D" else "")
             self.horarios_tree.insert("", tk.END, values=values, text=dias[dia])
+
+    def _refresh_horario_final(self) -> None:
+        """Llena la tabla 'Horario final' con el mismo formato que imprime main.py."""
+        if not self.logic or not self.horario_final_tree:
+            return
+        # Limpiar
+        for item in self.horario_final_tree.get_children():
+            self.horario_final_tree.delete(item)
+
+        dias = ["Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado"]
+        rows = []
+        for aula_idx, dias_aula in enumerate(self.logic.hda_aulas):
+            aula_nombre = _trim(self.logic.aulas[aula_idx].m_szcodaul)
+            for dia_idx, horas in enumerate(dias_aula):
+                for hora_idx, etiqueta in enumerate(horas):
+                    if etiqueta != "D":
+                        curso = etiqueta[:3].strip()
+                        docente = etiqueta[3:6].strip()
+                        grupo = etiqueta[6:].strip()
+                        hora = f"{hora_idx + 8:02}:00"
+                        rows.append((curso, grupo, docente, dias[dia_idx], hora, aula_nombre, dia_idx, hora_idx, aula_idx))
+
+        # Ordenar por dia, hora y aula para que quede coherente
+        rows.sort(key=lambda r: (r[6], r[7], r[8]))
+        for curso, grupo, docente, dia, hora, aula, _, _, _ in rows:
+            self.horario_final_tree.insert("", tk.END, values=(curso, grupo, docente, dia, hora, aula))
 
 
 def _trim(bs: bytes) -> str:
